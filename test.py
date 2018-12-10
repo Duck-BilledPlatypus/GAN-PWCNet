@@ -1,4 +1,3 @@
-#djlsadjsla
 import os
 from options.test_options import TestOptions
 from dataloader.data_loader import dataloader
