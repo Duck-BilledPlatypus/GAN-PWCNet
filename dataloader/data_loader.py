@@ -2,122 +2,99 @@ import random
 from PIL import Image
 import torchvision.transforms as transforms
 import torch.utils.data as data
-from .image_folder import make_dataset
 import torchvision.transforms.functional as F
 from os.path import *
+from scipy.misc import imread
+from glob import glob
+import torch
+import numpy as np
 
 class CreateDataset(data.Dataset):
     def initialize(self, opt):
         self.opt = opt
 
-        source_root = opt.img_source_file
         target_root = opt.img_target_file
-        lab_source_root = opt.lab_source_file
-
-        file_list = sorted(glob(join(lab_source_root, '*/*.mat')))
-        self.lab_source_list = []
-        self.source_list = []
         self.target_list = []
+        target_folder_list = sorted(glob(join(target_root, '*')))
+        for target_folder in target_folder_list:
+            target = sorted(glob('/'.join([target_folder,'*.png'])))
+            print(target)
+            for idx in range(len(target) - 1):
+                img_target_1 = target[idx]
+                img_target_2 = target[idx + 1]
+                if not isfile(img_target_1) or not isfile(img_target_2):
+                    continue
+                self.target_list += [[img_target_1, img_target_2]]
+        self.img_target_size = len(self.target_list)
 
-        for file in file_list
-            fbase = file[len(lab_source_root):]
-            fprefix = fbase[0:8]
-            fnum = int(fbase[8:13])
+        if opt.isTrain:
+            source_root = opt.img_source_file
+            lab_source_root = opt.lab_source_file
 
-            img_source_1 = join(source_root, fprefix + "%d"%(fnum+0) + '.jpg')
-            img_source_2 = join(source_root, fprefix + "%d"%(fnum+1) + '.jpg')
+            file_list = sorted(glob(join(lab_source_root, '*/*.mat')))
+            self.lab_source_list = []
+            self.source_list = []
 
-            if not isfile(img_source_1) or not isfile(img_source_2) or not isfile(file):
-                continue
-            self.source_list += [[img_source_1, img_source_2]]
-            self.lab_source_list += [file]
+            for file in file_list:
+                fbase = file[len(lab_source_root):]
+                fprefix = fbase[0:9]
+                fnum = int(fbase[9:13])
+                # print(fprefix)
+                img_source_1 = join(source_root, fprefix + "%d"%(fnum+0) + '.jpg')
+                img_source_2 = join(source_root, fprefix + "%d"%(fnum+1) + '.jpg')
 
-        self.img_source_size = len(self.source_list)
-
-
-
-        self.img_target_paths, self.img_target_size = make_dataset(opt.img_target_file)
-
-        self.img_source_size = self.img_source_size - 1
-        self.img_target_size = self.img_target_size - 1
-
-        if self.opt.isTrain:
-            self.lab_source_paths, self.lab_source_size = make_dataset(opt.lab_source_file)
-
-        self.transform_augment = get_transform(opt, True)
-        self.transform_no_augment = get_transform(opt, False)
+                if not isfile(img_source_1) or not isfile(img_source_2) or not isfile(file):
+                    continue
+                self.source_list += [[img_source_1, img_source_2]]
+                self.lab_source_list += [file]
+            print(self.lab_source_list)
+            print(self.source_list)
+            self.img_source_size = len(self.source_list)
 
     def __getitem__(self, item):
         index = random.randint(0, self.img_target_size - 1)
 
-        img_source_path_1 = self.img_source_paths[item % self.img_source_size]
-        img_source_path_2 = self.img_source_paths[(item % self.img_source_size) + 1]
+        img_target_1 = imread(self.target_list[index][0])
+        img_target_2 = imread(self.target_list[index][1])
 
-        if self.opt.dataset_mode == 'paired':
-            img_target_path = self.img_target_paths[item % self.img_target_size]
-        elif self.opt.dataset_mode == 'unpaired':
-            img_target_path_1 = self.img_target_paths[index]
-            img_target_path_2 = self.img_target_paths[index+1]
-        else:
-            raise ValueError('Data mode [%s] is not recognized' % self.opt.dataset_mode)
-
-        img_source_1 = Image.open(img_source_path_1).convert('RGB')
-        img_source_2 = Image.open(img_source_path_2).convert('RGB')
-        img_target_1 = Image.open(img_target_path_1).convert('RGB')
-        img_target_2 = Image.open(img_target_path_2).convert('RGB')
-
-        img_source = [img_source_1, img_source_2]
         img_target = [img_target_1, img_target_2]
 
-        img_source = img_source.resize([self.opt.loadSize[0], self.opt.loadSize[1]], Image.BICUBIC)
-        # img_source_2 = img_source_2.resize([self.opt.loadSize[0], self.opt.loadSize[1]], Image.BICUBIC)
-        img_target = img_target.resize([self.opt.loadSize[0], self.opt.loadSize[1]], Image.BICUBIC)
-        # img_target_2 = img_target_2.resize([self.opt.loadSize[0], self.opt.loadSize[1]], Image.BICUBIC)
+        img_target = np.array(img_target).transpose(3,0,1,2)
+        img_target = torch.from_numpy(img_target.astype(np.float32))
 
+        img_target_path = self.target_list[index]
         if self.opt.isTrain:
-            lab_source_path = self.lab_source_paths[item % self.lab_source_size]
-            # if self.opt.dataset_mode == 'paired':
-            #     lab_target_path = self.lab_target_paths[item % self.img_target_size]
-            # elif self.opt.dataset_mode == 'unpaired':
-            #     lab_target_path = self.lab_target_paths[index]
-            # else:
-            #     raise ValueError('Data mode [%s] is not recognized' % self.opt.dataset_mode)
-            lab_source = Image.open(lab_source_path)#.convert('RGB')
-            # lab_target = Image.open(lab_target_path)#.convert('RGB')
-            lab_source = lab_source.resize([self.opt.loadSize[0], self.opt.loadSize[1]], Image.BICUBIC)
-            # lab_target = lab_target.resize([self.opt.loadSize[0], self.opt.loadSize[1]], Image.BICUBIC)
+            img_source_1 = imread(self.source_list[item % self.img_source_size][0])
+            img_source_2 = imread(self.source_list[item % self.img_source_size][1])
+            img_source = [img_source_1, img_source_2]
+            # lab_source = imread(self.lab_source_list[item % self.img_source_size])
 
-            # img_source, lab_source, scale = paired_transform(self.opt, img_source, lab_source)
-            # img_source = [img_source_1, img_source_2]
-            # img_source = self.transform_augment(img_source)
-            img_source = self.transform_no_augment(img_source)
-            lab_source = self.transform_no_augment(lab_source)
+            img_source = np.array(img_source).transpose(3, 0, 1, 2)
+            img_source = torch.from_numpy(img_source.astype(np.float32))
 
-            # img_target, lab_target, scale = paired_transform(self.opt, img_target, lab_target)
-            # img_target = [img_target_1, img_target_2]
-            img_target = self.transform_no_augment(img_target)
-            # lab_target = self.transform_no_augment(lab_target)
+            img_source_path = self.source_list[item % self.img_source_size]
+            lab_source_path = self.lab_source_list[item % self.img_source_size]
 
+            # return {'img_source': img_source, 'img_target': img_target,
+            #         'lab_source': lab_source,
+            #         'img_source_paths': img_source_path, 'img_target_paths': img_target_path,
+            #         'lab_source_paths': lab_source_path
+            #         }
             return {'img_source': img_source, 'img_target': img_target,
-                    'lab_target': lab_target,
                     'img_source_paths': img_source_path, 'img_target_paths': img_target_path,
-                    'lab_target_paths': lab_target_path
+                    'lab_source_paths': lab_source_path
                     }
 
         else:
-            # img_source = [img_source_1, img_source_2]
-            # img_target = [img_target_1, img_target_2]
-            img_source = self.transform_no_augment(img_source)
-            img_target = self.transform_no_augment(img_target)
-            return {'img_source': img_source, 'img_target': img_target,
-                    'img_source_paths': img_source_path, 'img_target_paths': img_target_path,
+            return {'img_target': img_target,
+                    'img_target_paths': img_target_path,
                     }
 
     def __len__(self):
-        return max(self.img_source_size, self.img_target_size)
-
-    def name(self):
-        return 'T^2Dataset'
+        if self.opt.isTrain:
+            return max(self.img_source_size, self.img_target_size)
+        else:
+            return self.img_target_size
 
 
 def dataloader(opt):
