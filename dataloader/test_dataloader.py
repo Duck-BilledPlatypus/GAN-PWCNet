@@ -8,8 +8,6 @@ parser.add_argument('--img_target_file', type=str, default='/home/lyc/Desktop/Ox
                     help='training and testing dataser for target domain')
 parser.add_argument('--lab_source_file', type=str, default='/home/lyc/Desktop/datasets/playingforbenchmarks/gt/train/flow/',
                     help='training label for source domain')
-parser.add_argument('--dataset_mode', type=str, default='unpaired',
-                    help='chooses how datasets are loaded. [paired| unpaired]')
 parser.add_argument('--loadSize', type=list, default=[256, 192],
                     help='load image into same size [256, 192]|[640, 192]')
 parser.add_argument('--flip', action='store_true', default=False,
@@ -36,7 +34,8 @@ print('training images = %d' % dataset_size)
 for i, data in enumerate(dataset):
     print(i)
     print(data['img_target'].size())
-
+    print(data['img_source'].size())
+    print(data['lab_source_paths'])
 #
 # from os.path import *
 # from glob import glob
