@@ -3,8 +3,8 @@ from torch.autograd import Variable
 import itertools
 from util.image_pool import ImagePool
 import util.task as task
-from .base_model import BaseModel
-from . import network
+
+
 
 class T2NetModel(BaseModel):
     def name(self):
