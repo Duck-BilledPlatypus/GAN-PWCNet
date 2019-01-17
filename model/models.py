@@ -10,8 +10,9 @@ def create_model(opt):
     elif opt.model == 'test':
         from .test_model import TestModel
         model = TestModel()
-    elif opt.model == 'transform'
-        from .transform_model import TransformModel,
+    elif opt.model == 'transform':
+        from .transform_model import TransformModel
+        model = TransformModel()
     else:
         raise ValueError("Model [%s] not recognized." % opt.model)
     model.initialize(opt)

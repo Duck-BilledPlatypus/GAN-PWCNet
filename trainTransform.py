@@ -2,7 +2,7 @@ import time
 from options.train_options import TrainOptions
 from dataloader.data_loader import dataloader
 from model.models import create_model
-from util.visualizer import 
+from util.visualizer import Visualizer
 
 opt = TrainOptions().parse()
 
@@ -25,8 +25,8 @@ for epoch in range(opt.epoch_count, opt.niter+opt.niter_decay+1):
         model.optimize_parameters(i)
 
         if total_steps % opt.display_freq == 0:
-            if epoch >= opt.transform_epoch:
-                model.validation_target()
+            # if epoch >= opt.transform_epoch:
+            #     model.validation_target()
             visualizer.display_current_results(model.get_current_visuals(), epoch)
 
         if total_steps % opt.print_freq == 0:
