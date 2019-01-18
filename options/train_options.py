@@ -7,9 +7,9 @@ class TrainOptions(BaseOptions):
         # training epoch
         self.parser.add_argument('--epoch_count', type=int, default=1,
                                  help='the starting epoch count')
-        self.parser.add_argument('--niter', type=int, default=6,
+        self.parser.add_argument('--niter', type=int, default=60,
                                  help='# of iter with initial learning rate')
-        self.parser.add_argument('--niter_decay', type=int, default=4,
+        self.parser.add_argument('--niter_decay', type=int, default=40,
                                  help='# of iter to decay learning rate to zero')
         self.parser.add_argument('--continue_train', action='store_true',
                                  help='continue training: load the latest model')
@@ -35,7 +35,7 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--lambda_smooth', type=float, default=0.1,
                                  help='weight for depth smooth loss')
         # display the results
-        self.parser.add_argument('--display_freq', type=int, default=100,
+        self.parser.add_argument('--display_freq', type=int, default=20,
                                  help='frequency of showing training results on screen')
         self.parser.add_argument('--print_freq', type=int, default=100,
                                  help='frequency of showing training results on console')

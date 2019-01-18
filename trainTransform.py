@@ -23,6 +23,7 @@ for epoch in range(opt.epoch_count, opt.niter+opt.niter_decay+1):
         epoch_iter += opt.batchSize
         model.set_input(data)
         model.optimize_parameters(i)
+        # print('Hello World!')
 
         if total_steps % opt.display_freq == 0:
             # if epoch >= opt.transform_epoch:

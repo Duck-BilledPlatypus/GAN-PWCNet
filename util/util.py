@@ -9,7 +9,8 @@ def tensor2im(image_tensor, bytes=255.0, imtype=np.uint8):
     else:
         image_numpy = image_tensor[0].cpu().float().numpy()
     image_numpy = (np.transpose(image_numpy, (1, 2, 0)) + 1) / 2.0 * bytes
-
+    # image_numpy = (np.transpose(image_numpy, (1, 2, 0)) + 1) / 2.0
+    # image_numpy = np.transpose(image_numpy, (1,2,0)) * bytes
     return image_numpy.astype(imtype)
 
 def save_image(image_numpy, image_path):

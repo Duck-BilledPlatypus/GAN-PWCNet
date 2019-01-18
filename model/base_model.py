@@ -42,9 +42,11 @@ class BaseModel():
             if isinstance(name, str):
                 value = getattr(self, name)
                 if isinstance(value, list):
-                    visual_ret[name] = util.tensor2im(value[-1].data)
+                    # print('value:',value[-1].data.size())
+                    # print('value:', value[-1].data[:,0:3,:,:].size())
+                    visual_ret[name] = util.tensor2im(value[-1].data[:,0:3:,:])
                 else:
-                    visual_ret[name] = util.tensor2im(value.data)
+                    visual_ret[name] = util.tensor2im(value.data[:,0:3,:,:])
         return visual_ret
 
     # save models

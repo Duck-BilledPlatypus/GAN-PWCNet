@@ -32,7 +32,7 @@ class BaseOptions():
                                  help='training label for target domain')
         self.parser.add_argument('--dataset_mode', type=str, default='paired',
                                  help='chooses how datasets are loaded. [paired| unpaired]')
-        self.parser.add_argument('--loadSize', type=list, default=[256, 192],
+        self.parser.add_argument('--loadSize', type=list, default=[640, 384],
                                  help='load image into same size [256, 192]|[640, 192]')
         self.parser.add_argument('--flip', action='store_true',
                                  help='if specified, do flip the image for data augmentation')
@@ -42,14 +42,16 @@ class BaseOptions():
                                  help='if specified, rotate the images for data augmentation')
         self.parser.add_argument('--crop', action='store_true',
                                  help='if specified, crop the images for data augmentation')
-        self.parser.add_argument('--batchSize', type=int, default=6,
+        self.parser.add_argument('--batchSize', type=int, default=3,
                                  help='input batch size')
         self.parser.add_argument('--nThreads', type=int, default=8,
                                  help='# threads for loading data')
         self.parser.add_argument('--shuffle', action='store_true',
                                  help='if true, takes images randomly')
         # network structure define
-        self.parser.add_argument('--image_nc', type=int, default=3,
+        # self.parser.add_argument('--image_nc', type=int, default=3,
+        #                          help='# of input image channels')
+        self.parser.add_argument('--image_nc', type=int, default=6,
                                  help='# of input image channels')
         self.parser.add_argument('--label_nc', type=int, default=1,
                                  help='# of output label channels')
@@ -106,7 +108,8 @@ class BaseOptions():
             id = int(str_id)
             if id >=0:
                 self.opt.gpu_ids.append(id)
-
+        # print('print gpu_ids:')
+        # print(self.opt.gpu_ids)
         # set gpu ids
         if len(self.opt.gpu_ids):
             torch.cuda.set_device(self.opt.gpu_ids[0])

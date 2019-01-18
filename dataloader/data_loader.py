@@ -18,7 +18,7 @@ class CreateDataset(data.Dataset):
         target_folder_list = sorted(glob(join(target_root, '*')))
         for target_folder in target_folder_list:
             target = sorted(glob('/'.join([target_folder,'*.png'])))
-            print(target)
+
             for idx in range(len(target) - 1):
                 img_target_1 = target[idx]
                 img_target_2 = target[idx + 1]
@@ -39,7 +39,7 @@ class CreateDataset(data.Dataset):
                 fbase = file[len(lab_source_root):]
                 fprefix = fbase[0:9]
                 fnum = int(fbase[9:13])
-                # print(fprefix)
+
                 img_source_1 = join(source_root, fprefix + "%d"%(fnum+0) + '.jpg')
                 img_source_2 = join(source_root, fprefix + "%d"%(fnum+1) + '.jpg')
 
@@ -47,30 +47,28 @@ class CreateDataset(data.Dataset):
                     continue
                 self.source_list += [[img_source_1, img_source_2]]
                 self.lab_source_list += [file]
-            print(self.lab_source_list)
-            print(self.source_list)
+
             self.img_source_size = len(self.source_list)
+
 
     def __getitem__(self, item):
         index = random.randint(0, self.img_target_size - 1)
 
-        img_target_1 = imread(self.target_list[index][0])
-        img_target_2 = imread(self.target_list[index][1])
+        img_target_1 = Image.open(self.target_list[index][0]).convert('RGB')
+        img_target_2 = Image.open(self.target_list[index][1]).convert('RGB')
+        img_target_1 = resize_normal(self.opt,img_target_1)
+        img_target_2 = resize_normal(self.opt,img_target_2)
+        img_target = torch.cat([img_target_1,img_target_2], 0)
 
-        img_target = [img_target_1, img_target_2]
-
-        img_target = np.array(img_target).transpose(3,0,1,2)
-        img_target = torch.from_numpy(img_target.astype(np.float32))
 
         img_target_path = self.target_list[index]
         if self.opt.isTrain:
-            img_source_1 = imread(self.source_list[item % self.img_source_size][0])
-            img_source_2 = imread(self.source_list[item % self.img_source_size][1])
-            img_source = [img_source_1, img_source_2]
-            # lab_source = imread(self.lab_source_list[item % self.img_source_size])
+            img_source_1 = Image.open(self.source_list[item % self.img_source_size][0])
+            img_source_2 = Image.open(self.source_list[item % self.img_source_size][1])
+            img_source_1 = resize_normal(self.opt,img_source_1)
+            img_source_2 = resize_normal(self.opt,img_source_2)
+            img_source = torch.cat([img_source_1, img_source_2], 0)
 
-            img_source = np.array(img_source).transpose(3, 0, 1, 2)
-            img_source = torch.from_numpy(img_source.astype(np.float32))
 
             img_source_path = self.source_list[item % self.img_source_size]
             lab_source_path = self.lab_source_list[item % self.img_source_size]
@@ -102,6 +100,11 @@ def dataloader(opt):
     datasets.initialize(opt)
     dataset = data.DataLoader(datasets, batch_size=opt.batchSize, shuffle=opt.shuffle, num_workers=int(opt.nThreads))
     return dataset
+def resize_normal(opt, img):
+    img = img.resize([opt.loadSize[0],opt.loadSize[1]], Image.BICUBIC)
+    img = transforms.ToTensor()(img)
+    img = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(img)
+    return img
 
 def paired_transform(opt, image, depth):
     scale_rate = 1.0

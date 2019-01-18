@@ -14,7 +14,7 @@ class TransformModel(BaseModel):
         self.loss_names = ['img_rec', 'img_G', 'img_D']
         self.visual_names = ['img_s', 'img_t',  'img_s2t', 'img_t2t']
 
-        self.model_names = ['s2t', 'image_D']
+        self.model_names = ['s2t', 'img_D']
 
 
         self.net_s2t = network.define_G(opt.image_nc, opt.image_nc, opt.ngf, opt.transform_layers, opt.norm,
@@ -80,8 +80,9 @@ class TransformModel(BaseModel):
         self.loss_img_D = self.backward_D_basic(self.net_img_D, real, fake)
 
     def foreward_G_basic(self, net_G, img_s, img_t):
-        print('img_s:',img_s.size())
-        print('img_t:',img_t.size())
+        # print('img_s:',img_s.size())
+        # print('img_t:',img_t.size())
+
         img = torch.cat([img_s, img_t], 0)
 
         fake = net_G(img)
@@ -122,7 +123,8 @@ class TransformModel(BaseModel):
 
         total_loss = self.loss_img_G + self.loss_img_rec
 
-        total_loss.backward(retain_graph=True)
+        # total_loss.backward(retain_graph=True) - Aashish is excellent, 17/01/2019, 10:00pm
+        total_loss.backward()
 
     def optimize_parameters(self, epoch_iter):
         self.forward()
@@ -134,9 +136,5 @@ class TransformModel(BaseModel):
     # Discriminator
         self.optimizer_D.zero_grad()
         self.backward_D_image()
-        if epoch_iter % 5 == 0:
-            self.optimizer_D.step()
-            for p in self.net_f_D.parameters():
-                p.data.clamp_(-0.01, 0.01)
 
     # def validation_target(self):
