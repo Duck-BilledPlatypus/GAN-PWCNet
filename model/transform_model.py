@@ -5,16 +5,20 @@ from util.image_pool import ImagePool
 import util.task as task
 from .base_model import BaseModel
 from . import network
-
+from . import PWCNet
+from . import helper
+from torch.nn.functional import upsample
+from . import multiloss
 
 class TransformModel(BaseModel):
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
 
-        self.loss_names = ['img_rec', 'img_G', 'img_D']
-        self.visual_names = ['img_s', 'img_t',  'img_s2t', 'img_t2t']
 
-        self.model_names = ['s2t', 'img_D']
+        self.loss_names = ['img_rec', 'img_G', 'img_D', 'lab_s']
+        self.visual_names = ['img_s', 'img_t',  'img_s2t', 'img_t2t', 'img_s2t', 'img_t2t']
+
+        self.model_names = ['s2t', 'img_D', 'img2task']
 
 
         self.net_s2t = network.define_G(opt.image_nc, opt.image_nc, opt.ngf, opt.transform_layers, opt.norm,
@@ -24,12 +28,16 @@ class TransformModel(BaseModel):
         self.net_img_D = network.define_D(opt.image_nc, opt.ndf, opt.image_D_layers, opt.num_D, opt.norm, opt.activation,
                                       opt.init_type, opt.gpu_ids)
 
+        self.net_img2task = PWCNet.pwc_dc_net().cuda()
+
         self.fake_img_pool = ImagePool(opt.pool_size)
         self.l1loss = torch.nn.L1Loss()
         self.nonlinearity = torch.nn.ReLU()
 
-        self.optimizer_T2Net = torch.optim.Adam([{'params': filter(lambda p: p.requires_grad, self.net_s2t.parameters())}], \
-            lr=opt.lr_trans, betas=(0.5, 0.9))
+        self.optimizer_T2Net = torch.optim.Adam([{'params': filter(lambda p: p.requires_grad, self.net_s2t.parameters())}, \
+                                                 {'params':filter(lambda p: p.requires_grad, self.net_img2task.parameters()), \
+                                                  'lr': opt.lr_task, 'betas': (0.95, 0.999)}], \
+                                                lr=opt.lr_trans, betas=(0.5, 0.9))
         self.optimizer_D = torch.optim.Adam(itertools.chain(filter(lambda p: p.requires_grad, self.net_img_D.parameters())), \
                                         lr=opt.lr_trans, betas=(0.5, 0.9))
         self.optimizers = []
@@ -44,15 +52,18 @@ class TransformModel(BaseModel):
 
         self.img_source = input['img_source']
         self.img_target = input['img_target']
+        self.lab_source = input['lab_source']
 
         if len(self.gpu_ids) > 0:
             self.img_source = self.img_source.cuda(self.gpu_ids[0], async=True)
             self.img_target = self.img_target.cuda(self.gpu_ids[0], async=True)
+            self.lab_source = self.lab_source.cuda(self.gpu_ids[0], async=True)
 
     def forward(self):
         self.img_s = Variable(self.img_source)
 
         self.img_t = Variable(self.img_target)
+        self.lab_s = Variable(self.lab_source)
 
     def backward_D_basic(self, netD, real, fake):
         D_loss = 0
@@ -124,7 +135,26 @@ class TransformModel(BaseModel):
         total_loss = self.loss_img_G + self.loss_img_rec
 
         # total_loss.backward(retain_graph=True) - Aashish is excellent, 17/01/2019, 10:00pm
+        total_loss.backward(retain_graph=True)
+
+    def backward_translated2flow(self):
+        fake = self.net_img2task.forward(self.img_s2t[-1])
+        '''
+        b,c,h,w = self.lab_s.size()
+        fake = upsample(fake,(h,w),mode='bilinear')
+        print('fake.size():',fake.size())
+        
+        self.loss_lab_s = multiloss.multiscaleEPE(fake,self.lab_s)
+        '''
+        self.loss_lab_s = multiloss.realEPE(fake,self.lab_s)
+        # exit()
+        total_loss = self.loss_lab_s
+
         total_loss.backward()
+
+
+
+
 
     def optimize_parameters(self, epoch_iter):
         self.forward()
@@ -132,9 +162,11 @@ class TransformModel(BaseModel):
     # T2Net
         self.optimizer_T2Net.zero_grad()
         self.backward_synthesis2real()
+        self.backward_translated2flow()
         self.optimizer_T2Net.step()
     # Discriminator
         self.optimizer_D.zero_grad()
         self.backward_D_image()
-
+        if epoch_iter % 5 == 0:
+            self.optimizer_D.step()
     # def validation_target(self):

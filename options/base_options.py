@@ -53,7 +53,7 @@ class BaseOptions():
         #                          help='# of input image channels')
         self.parser.add_argument('--image_nc', type=int, default=6,
                                  help='# of input image channels')
-        self.parser.add_argument('--label_nc', type=int, default=1,
+        self.parser.add_argument('--label_nc', type=int, default=2,
                                  help='# of output label channels')
         self.parser.add_argument('--ngf', type=int, default=64,
                                  help='# of encoder filters in first conv layer')

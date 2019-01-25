@@ -35,9 +35,9 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--lambda_smooth', type=float, default=0.1,
                                  help='weight for depth smooth loss')
         # display the results
-        self.parser.add_argument('--display_freq', type=int, default=20,
+        self.parser.add_argument('--display_freq', type=int, default=5,
                                  help='frequency of showing training results on screen')
-        self.parser.add_argument('--print_freq', type=int, default=100,
+        self.parser.add_argument('--print_freq', type=int, default=5,
                                  help='frequency of showing training results on console')
         self.parser.add_argument('--save_latest_freq', type=int, default=5000,
                                  help='frequency of saving the latest results')
