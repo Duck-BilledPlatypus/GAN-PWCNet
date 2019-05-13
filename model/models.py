@@ -10,9 +10,27 @@ def create_model(opt):
     elif opt.model == 'test':
         from .test_model import TestModel
         model = TestModel()
-    elif opt.model == 'transform':
-        from .transform_model import TransformModel
-        model = TransformModel()
+    elif opt.model == 'tmodel':
+        from .TModel import TModel
+        model = TModel()
+    elif opt.model == 'tpmodel':
+        from .TPModel import TPModel
+        model = TPModel()
+    elif opt.model == 'tpomodel':
+        from .TPOModel import TPOModel
+        model = TPOModel()
+    elif opt.model == 'tpovrmodel':
+        from .TPOVRModel import TPOVRModel
+        model = TPOVRModel()
+    elif opt.model == 'tpovmodel':
+        from .TPOVModel import TPOVModel
+        model = TPOVModel()
+    elif opt.model == 'testtpov':
+        from .test_tpov_model import TestTPOVModel
+        model = TestTPOVModel()
+    elif opt.model == 'testtp':
+        from model.test_tp_model import TestTPModel
+        model = TestTPModel()
     else:
         raise ValueError("Model [%s] not recognized." % opt.model)
     model.initialize(opt)

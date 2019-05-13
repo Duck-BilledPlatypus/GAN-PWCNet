@@ -24,20 +24,22 @@ class TrainOptions(BaseOptions):
                                  help='initial learning rate for adam')
         self.parser.add_argument('--lr_trans', type=float, default=5e-5,
                                  help='initial learning rate for discriminator')
-        self.parser.add_argument('--lambda_rec_img', type=float, default=40.0,
+        self.parser.add_argument('--lambda_rec_img', type=float, default=100.0,
                                  help='weight for image reconstruction loss')
+        self.parser.add_argument('--lambda_rec_s', type=float, default=100.0,
+                                 help='weight for synthetic reconstruction loss')
         self.parser.add_argument('--lambda_gan_img', type=float, default=1.0,
                                  help='weight for image GAN loss')
         self.parser.add_argument('--lambda_gan_feature', type=float, default=0.1,
                                  help='weight for feature GAN loss')
-        self.parser.add_argument('--lambda_rec_lab', type=float, default=20.0,
+        self.parser.add_argument('--lambda_rec_lab', type=float, default=100.0,
                                  help='weight for task loss')
         self.parser.add_argument('--lambda_smooth', type=float, default=0.1,
                                  help='weight for depth smooth loss')
         # display the results
-        self.parser.add_argument('--display_freq', type=int, default=5,
+        self.parser.add_argument('--display_freq', type=int, default=1,
                                  help='frequency of showing training results on screen')
-        self.parser.add_argument('--print_freq', type=int, default=5,
+        self.parser.add_argument('--print_freq', type=int, default=1,
                                  help='frequency of showing training results on console')
         self.parser.add_argument('--save_latest_freq', type=int, default=5000,
                                  help='frequency of saving the latest results')
@@ -48,7 +50,7 @@ class TrainOptions(BaseOptions):
         # others
         self.parser.add_argument('--separate', action='store_true',
                                  help='transform and task network training end-to-end or separate')
-        self.parser.add_argument('--pool_size', type=int, default=50,
+        self.parser.add_argument('--pool_size', type=int, default=20,
                                  help='the size of image buffer that stores previously generated images')
 
         self.isTrain = True

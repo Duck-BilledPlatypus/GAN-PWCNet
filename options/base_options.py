@@ -26,14 +26,30 @@ class BaseOptions():
                                  help='training and testing dataset for source domain')
         self.parser.add_argument('--img_target_file', type=str, default='/data/dataset/Image2Depth_SUN_NYU/trainA.txt',
                                  help='training and testing dataser for target domain')
+        self.parser.add_argument('--img_source_file_1', type=str, default='/data/dataset/Image2Depth_SUN_NYU/trainA_SYN10.txt',
+                                 help='training and testing dataset for source domain')
+        self.parser.add_argument('--img_target_file_1', type=str, default='/data/dataset/Image2Depth_SUN_NYU/trainA.txt',
+                                 help='training and testing dataser for target domain')
+        self.parser.add_argument('--img_source_file_2', type=str, default='/data/dataset/Image2Depth_SUN_NYU/trainA_SYN10.txt',
+                                 help='training and testing dataset for source domain')
+        self.parser.add_argument('--img_target_file_2', type=str, default='/data/dataset/Image2Depth_SUN_NYU/trainA.txt',
+                                 help='training and testing dataser for target domain')
         self.parser.add_argument('--lab_source_file', type=str, default='/data/dataset/Image2Depth_SUN_NYU/trainC_SYN10.txt',
                                  help='training label for source domain')
         self.parser.add_argument('--lab_target_file', type=str, default='/data/dataset/Image2Depth_SUN_NYU/trainC.txt',
                                  help='training label for target domain')
-        self.parser.add_argument('--dataset_mode', type=str, default='paired',
+        self.parser.add_argument('--img_target_file_1_v', type=str, default='/data/dataset/Image2Depth_SUN_NYU/trainA_SYN10.txt',
+                                 help='training and testing dataset for source domain')
+        self.parser.add_argument('--img_target_file_2_v', type=str, default='/data/dataset/Image2Depth_SUN_NYU/trainA_SYN10.txt',
+                                 help='training and testing dataset for source domain')
+        self.parser.add_argument('--lab_target_file_v', type=str, default='/data/dataset/Image2Depth_SUN_NYU/trainA_SYN10.txt',
+                                 help='training and testing dataset for source domain')
+        self.parser.add_argument('--dataset_mode', type=str, default='unpaired',
                                  help='chooses how datasets are loaded. [paired| unpaired]')
-        self.parser.add_argument('--loadSize', type=list, default=[640, 384],
-                                 help='load image into same size [256, 192]|[640, 192]')
+        self.parser.add_argument('--loadSize', type=list, default=[384, 192],
+                                 help='load image into same size [384, 192][256, 192]|[640, 192]')
+        self.parser.add_argument('--loadSize_v', type=list, default=[1280, 768],
+                                 help='load image into same size [384, 192][256, 192]|[640, 192]')
         self.parser.add_argument('--flip', action='store_true',
                                  help='if specified, do flip the image for data augmentation')
         self.parser.add_argument('--scale_rate', type=float, default=0,
@@ -42,18 +58,16 @@ class BaseOptions():
                                  help='if specified, rotate the images for data augmentation')
         self.parser.add_argument('--crop', action='store_true',
                                  help='if specified, crop the images for data augmentation')
-        self.parser.add_argument('--batchSize', type=int, default=3,
+        self.parser.add_argument('--batchSize', type=int, default=4,
                                  help='input batch size')
-        self.parser.add_argument('--nThreads', type=int, default=8,
+        self.parser.add_argument('--nThreads', type=int, default=2,
                                  help='# threads for loading data')
         self.parser.add_argument('--shuffle', action='store_true',
                                  help='if true, takes images randomly')
         # network structure define
-        # self.parser.add_argument('--image_nc', type=int, default=3,
-        #                          help='# of input image channels')
-        self.parser.add_argument('--image_nc', type=int, default=6,
+        self.parser.add_argument('--image_nc', type=int, default=3,
                                  help='# of input image channels')
-        self.parser.add_argument('--label_nc', type=int, default=2,
+        self.parser.add_argument('--label_nc', type=int, default=1,
                                  help='# of output label channels')
         self.parser.add_argument('--ngf', type=int, default=64,
                                  help='# of encoder filters in first conv layer')
@@ -108,8 +122,7 @@ class BaseOptions():
             id = int(str_id)
             if id >=0:
                 self.opt.gpu_ids.append(id)
-        # print('print gpu_ids:')
-        # print(self.opt.gpu_ids)
+
         # set gpu ids
         if len(self.opt.gpu_ids):
             torch.cuda.set_device(self.opt.gpu_ids[0])

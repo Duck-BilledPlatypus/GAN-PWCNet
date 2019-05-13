@@ -35,6 +35,13 @@ class BaseModel():
                 errors_ret[name] = getattr(self, 'loss_' + name).item()
         return errors_ret
 
+    def get_current_errors_v(self):
+        errors_ret_v = OrderedDict()
+        for name in self.loss_names_v:
+            if isinstance(name, str):
+                errors_ret_v[name] = getattr(self, 'loss_' + name).item()
+        return errors_ret_v
+
     # return visualization images
     def get_current_visuals(self):
         visual_ret = OrderedDict()
@@ -42,11 +49,9 @@ class BaseModel():
             if isinstance(name, str):
                 value = getattr(self, name)
                 if isinstance(value, list):
-                    # print('value:',value[-1].data.size())
-                    # print('value:', value[-1].data[:,0:3,:,:].size())
-                    visual_ret[name] = util.tensor2im(value[-1].data[:,0:3:,:])
+                    visual_ret[name] = util.tensor2im(value[-1].data)
                 else:
-                    visual_ret[name] = util.tensor2im(value.data[:,0:3,:,:])
+                    visual_ret[name] = util.tensor2im(value.data)
         return visual_ret
 
     # save models

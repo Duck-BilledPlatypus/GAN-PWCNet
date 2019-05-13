@@ -92,20 +92,65 @@ class Visualizer():
             webpage.save()
 
     # errors: dictionary of error labels and values
+    # def plot_current_errors(self, epoch, counter_ratio, opt, errors):
+    #     if not hasattr(self, 'plot_data'):
+    #         self.plot_data = {'X':[],'Y':[], 'legend':list(errors.keys())}
+    #     self.plot_data['X'].append(epoch + counter_ratio)
+    #     self.plot_data['Y'].append([errors[k] for k in self.plot_data['legend']])
+    #     self.vis.line(
+    #         X=np.stack([np.array(self.plot_data['X'])]*len(self.plot_data['legend']),1),
+    #         Y=np.array(self.plot_data['Y']),
+    #         opts={
+    #             'title': self.name + ' loss over time',
+    #             'legend': self.plot_data['legend'],
+    #             'xlabel': 'epoch',
+    #             'ylabel': 'loss'},
+    #         win=self.display_id)
     def plot_current_errors(self, epoch, counter_ratio, opt, errors):
         if not hasattr(self, 'plot_data'):
             self.plot_data = {'X':[],'Y':[], 'legend':list(errors.keys())}
+
+
         self.plot_data['X'].append(epoch + counter_ratio)
         self.plot_data['Y'].append([errors[k] for k in self.plot_data['legend']])
+
+        winid = 30
+        for i in range(len(self.plot_data['legend'])):
+            X=np.array(self.plot_data['X'])
+
+            Y=np.array([y[i] for y in self.plot_data['Y']])
+            # print('X', X.shape)
+            # print('Y', Y.shape)
+
+            self.vis.line(
+                X = X,
+                Y = Y,
+                opts={
+                    'title': self.name + self.plot_data['legend'][i] + ' loss over time',
+                    'legend': [self.plot_data['legend'][i]],
+                    'xlabel': 'epoch',
+                    'ylabel': 'loss'},
+                win = winid)
+            winid += 1
+    def plot_current_errors_v(self, epoch, opt, errors):
+        if not hasattr(self, 'plot_data_v'):
+            self.plot_data_v = {'X':[],'Y':[], 'legend':errors.keys()}
+
+
+        self.plot_data_v['X'].append(epoch)
+        self.plot_data_v['Y'].append(errors.values())
+
+        X=np.array(self.plot_data_v['X'])
+        Y=np.array(self.plot_data_v['Y'])
         self.vis.line(
-            X=np.stack([np.array(self.plot_data['X'])]*len(self.plot_data['legend']),1),
-            Y=np.array(self.plot_data['Y']),
+            X = X,
+            Y = Y,
             opts={
-                'title': self.name + ' loss over time',
-                'legend': self.plot_data['legend'],
+                'title': self.name + self.plot_data_v['legend'][0] + ' loss over time',
+                'legend': [self.plot_data_v['legend'][0]],
                 'xlabel': 'epoch',
                 'ylabel': 'loss'},
-            win=self.display_id)
+            win = 40)
 
     # errors: same format as |errors| of plotCurrentErrors
     def print_current_errors(self, epoch, i, errors, t):
